@@ -1,105 +1,90 @@
-use std::collections::btree_map::Entry;
+use fltk::app::event_key;
+use fltk::app::event_key_down;
+use fltk::enums::Color;
+use fltk::enums::Event;
+use fltk::enums::Key;
+use fltk::prelude::WidgetExt;
+use fltk::{app, frame::Frame, image::SharedImage, prelude::*, window::Window};
+use fltk::{prelude::*, *};
+use glob::*;
+use std::hint::black_box;
+use std::io::empty;
 use std::path::*;
 use std::vec;
-
-use fltk::app::event_key;
-use glob::*;
-use fltk::{prelude::*, *};
-use fltk::{app, frame::Frame, image::SharedImage, prelude::*, window::Window};
+mod key_map;
+mod key_mgr;
+use std::env;
 fn main() {
-    let app = app::App::default().with_scheme(app::Scheme::Gleam);
-    let mut wind = Window::default().with_size(850, 650);
-
-    //let mut image_vis = group::Flex::new(70,0,800,600,"");
-    let mut image_N = Frame::new(25,0,800,600,"");
-    let mut image_P = SharedImage::load("new/acg.gy_01.jpg").unwrap();
+    let args: Vec<String> = env::args().collect();
+    let mut all_path: Vec<String> = Vec::new();
+    if args.len() <= 1 {
+        return;
+    }
+    if args[1] == "-d" { 
+        if args.len() <= 2 {
+            return;
+        }
+        all_path = get_all_path(&args[2]);
+    }
+    else{
+        all_path.push(args[1].clone());
+    }
+    let app = app::App::default();
+    let mut wind = Window::default().with_size(850, 850);
+    wind.clone().set_color(Color::Black);
     
-    image_P.scale(800, 600, true, true);
-    //image_N.set_image(Some(image_P));
-    let mut size:i32 = 500;
-    let mut xp:i32 = 0;
-    let mut yp:i32 = 0;
-    let mut nw = 0;
-    let all_path:Vec<String> = get_all_path();
-    let len = all_path.len();
-    image_N.handle({
-    let mut image_P=image_P.clone();
-    let mut image_N = image_N.clone();
-    let mut wind = wind.clone();
-        move |_, event |
-        match event {
-        enums::Event::NoEvent => {
-            if app::event_key_down(enums::Key::from_char('e'))  {
-                size += 40;
-                image_set(image_P.clone(), image_N.clone(), size, xp, yp);
-                wind.redraw();
-            }
-            if app::event_key_down(enums::Key::from_char('q'))  {
-                size-=40;
-                image_set(image_P.clone(), image_N.clone(), size, xp, yp);
-                wind.redraw();
-            }
-            if app::event_key_down(enums::Key::from_char('d'))  {
-                xp+=8;
-                image_set(image_P.clone(), image_N.clone(), size, xp, yp);
-                wind.redraw();
-            }
-            if app::event_key_down(enums::Key::from_char('a'))  {
-                xp-=8;
-                image_set(image_P.clone(), image_N.clone(), size, xp, yp);
-                wind.redraw();
-            }
-            if app::event_key_down(enums::Key::from_char('s'))  {
-                yp+=8;
-                image_set(image_P.clone(), image_N.clone(), size, xp, yp);
-                wind.redraw();
-            }
-            if app::event_key_down(enums::Key::from_char('w')){
-                yp-=8;
-                image_set(image_P.clone(), image_N.clone(), size, xp, yp);
-                wind.redraw();
-            }
-            wind.redraw();
-            app::sleep(0.05);
-            true
+    match wind.label_color(){
+        Color::Black => {
+            println!("Bl");
         }
-        enums::Event::KeyUp =>{
-            if app::event_key()==enums::Key::from_char('c'){
-                nw+=1;
-                if nw >= len{nw = 0;}
-                image_P = SharedImage::load(&all_path[nw]).unwrap();
-            }
-            if app::event_key()==enums::Key::from_char('z'){
-                if nw == 0 {nw = len;}
-                nw-=1;
-                
-                image_P = SharedImage::load(&all_path[nw]).unwrap();
-            }
-            image_set(image_P.clone(), image_N.clone(), size, xp, yp);
-            wind.redraw();
-            true
-        }
-        _ => false
-    }});
-    println!("{}",len);
+        _ => ()
+    }
+    //let mut image_vis = group::Flex::new(70,0,800,600,"");
+    let mut image_N = Frame::new(25, 0, 800, 800, "");
+    let mut image_P = SharedImage::load(&all_path[0]).unwrap();
+    image_P.scale(800, 800, true, true);
+    image_N.set_image(Some(image_P.clone()));
+    wind.redraw();
+
+    key_mgr::key_listener(image_N.clone(), image_P.clone(), wind.clone(), all_path);
+
     wind.end();
+    
     wind.make_resizable(true);
     wind.show();
     app.run().unwrap();
 }
-fn image_set(mut image_P:image::SharedImage,mut image_N:Frame,size:i32,xp:i32,yp:i32){
+fn image_set(mut image_P: image::SharedImage, mut image_N: Frame, size: f64, xp: i32, yp: i32) {
+    let size: i32 = size as i32;
     image_P.scale(size, size, true, true);
     image_N.set_size(size, size);
     image_N.set_pos(xp, yp);
     image_N.set_image(Some(image_P.clone()));
-    image_N.redraw();
+    app::sleep(0.01);
 }
-fn get_all_path() -> Vec<String>{
-    let mut all_path:Vec<String> = Vec::new();
-    for entry in glob("new/*.jpg").expect("Failed to read glob pattern") {
-    match entry {
-        Ok(path) => all_path.push(path.display().to_string()),
-        Err(e) => println!("{:?}", e),
-    }}
+fn get_all_path(path_in: &String) -> Vec<String> {
+    let mut all_path: Vec<String> = Vec::new();
+    let mut pattern = format!("{}/*.jpg", path_in);
+    println!("{}",pattern);
+    for entry in glob(&pattern).expect("Failed to read glob pattern") {
+        match entry {
+            Ok(path) => all_path.push(path.display().to_string()),
+            Err(e) => println!("{:?}", e),
+        }
+    }
+    pattern = format!("{}/*.png", path_in);
+    for entry in glob(&pattern).expect("Failed to read glob pattern") {
+        match entry {
+            Ok(path) => all_path.push(path.display().to_string()),
+            Err(e) => println!("{:?}", e),
+        }
+    }
+    pattern = format!("{}/*.bmp", path_in);
+    for entry in glob(&pattern).expect("Failed to read glob pattern") {
+        match entry {
+            Ok(path) => all_path.push(path.display().to_string()),
+            Err(e) => println!("{:?}", e),
+        }
+    }
     all_path
 }

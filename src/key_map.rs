@@ -1,0 +1,27 @@
+use fltk::enums::Key;
+pub const a:Key = Key::from_char('a');
+pub const b:Key = Key::from_char('b');
+pub const c:Key = Key::from_char('c');
+pub const d:Key = Key::from_char('d');
+pub const e:Key = Key::from_char('e');
+pub const f:Key = Key::from_char('f');
+pub const g:Key = Key::from_char('g');
+pub const h:Key = Key::from_char('h');
+pub const i:Key = Key::from_char('i');
+pub const j:Key = Key::from_char('j');
+pub const k:Key = Key::from_char('k');
+pub const l:Key = Key::from_char('l');
+pub const m:Key = Key::from_char('m');
+pub const n:Key = Key::from_char('n');
+pub const o:Key = Key::from_char('o');
+pub const p:Key = Key::from_char('p');
+pub const q:Key = Key::from_char('q');
+pub const r:Key = Key::from_char('r');
+pub const s:Key = Key::from_char('s');
+pub const t:Key = Key::from_char('t');
+pub const u:Key = Key::from_char('u');
+pub const v:Key = Key::from_char('v');
+pub const w:Key = Key::from_char('w');
+pub const x:Key = Key::from_char('x');
+pub const y:Key = Key::from_char('y');
+
