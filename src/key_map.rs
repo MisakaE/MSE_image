@@ -24,4 +24,4 @@ pub const v:Key = Key::from_char('v');
 pub const w:Key = Key::from_char('w');
 pub const x:Key = Key::from_char('x');
 pub const y:Key = Key::from_char('y');
-
+pub const z:Key = Key::from_char('z');
