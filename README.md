@@ -3,9 +3,9 @@
 ### 使用方法:
 
 ~~~
-msv {image_path} //仅打开目标图片
+msev {image_path} //仅打开目标图片
 
-msv -d {dir_path} //打开目标文件夹
+msev -d {dir_path} //打开目标文件夹
 ~~~
 进入程序后的按键
 ~~~
