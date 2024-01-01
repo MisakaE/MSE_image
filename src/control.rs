@@ -6,7 +6,7 @@ pub fn image(all_path: Vec<String>,mut image_n:Frame,mut image_p:SharedImage,max
     thread::spawn(move || {
         let mut x = 0;
         let mut y = 0;
-        let mut size = 500;
+        let mut size = 900;
         let mut now_image = 0;
         for g in control {
             x += g.x;
@@ -15,13 +15,13 @@ pub fn image(all_path: Vec<String>,mut image_n:Frame,mut image_p:SharedImage,max
             if g.size != 0 {
                 match g.size {
                     1 => {
-                        if size <=6000 {
-                            size = (size as f32 * 1.25) as i32;
+                        if size <=2000 {
+                            size = (size as f32 * 1.1) as i32;
                         }
                     }
                     -1 => {
                         if size >=30 {
-                            size = (size as f32* 0.8) as i32;
+                            size = (size as f32* 0.92) as i32;
                         }
                     }
                     _ => {}
@@ -30,6 +30,10 @@ pub fn image(all_path: Vec<String>,mut image_n:Frame,mut image_p:SharedImage,max
                 image_n.set_image(Some(image_p.clone()));
             }
             if g.flag!=0{
+                x=0;
+                y=0;
+                size=900;
+                image_n.set_pos(x, y);
                 now_image += g.flag as i32;
                 if now_image == max_image{
                     now_image = 0;

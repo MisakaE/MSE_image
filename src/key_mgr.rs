@@ -36,8 +36,10 @@ pub fn key_listener_keep(control:Sender<Command>){
         }
         if flag {
             control.send(comd).expect("field to send");
+            app::sleep(0.01);
         }
-        app::sleep(0.05);
+        else {app::sleep(0.05);}
+        
     });
 }
 pub fn key_listener_once(control:Sender<Command>){
@@ -58,6 +60,6 @@ pub fn key_listener_once(control:Sender<Command>){
                 }
             }
         }
-        app::sleep(0.05);
+        app::sleep(0.08);
     });
 }

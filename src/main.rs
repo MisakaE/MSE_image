@@ -21,15 +21,12 @@ fn main() {
     else{
         all_path.push(args[1].clone());
     }
-    
-
     let app = app::App::default();
     let mut wind = Window::default().with_size(850, 850);
     wind.set_color(Color::Black);
-
     let mut image_n = Frame::new(25, 0, 800, 800, "");
     let mut image_p = SharedImage::load(&all_path[0]).unwrap();
-    image_p.scale(500, 500, true, true);
+    image_p.scale(900, 900, true, true);
     image_n.set_image(Some(image_p.clone()));
     wind.end();
     wind.make_resizable(true);
