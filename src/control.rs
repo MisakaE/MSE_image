@@ -1,8 +1,21 @@
-use std::{thread, sync::mpsc::Receiver};
 use crate::struct_command;
-use fltk::{app,image::SharedImage,frame::Frame,prelude::{WidgetExt,ImageExt}};
+use fltk::{
+    app,
+    frame::Frame,
+    image::SharedImage,
+    prelude::{ImageExt, WidgetExt},
+    window::DoubleWindow,
+};
+use std::{cmp::min, sync::mpsc::Receiver, thread};
 
-pub fn image(all_path: Vec<String>,mut image_n:Frame,mut image_p:SharedImage,max_image:i32,control:Receiver<struct_command::Command>){
+pub fn image(
+    all_path: Vec<String>,
+    mut image_n: Frame,
+    mut image_p: SharedImage,
+    max_image: i32,
+    control: Receiver<struct_command::Command>,
+    wind: DoubleWindow,
+) {
     thread::spawn(move || {
         let mut x = 0;
         let mut y = 0;
@@ -15,13 +28,13 @@ pub fn image(all_path: Vec<String>,mut image_n:Frame,mut image_p:SharedImage,max
             if g.size != 0 {
                 match g.size {
                     1 => {
-                        if size <=2000 {
+                        if size <= 2000 {
                             size = (size as f32 * 1.1) as i32;
                         }
                     }
                     -1 => {
-                        if size >=30 {
-                            size = (size as f32* 0.92) as i32;
+                        if size >= 30 {
+                            size = (size as f32 * 0.92) as i32;
                         }
                     }
                     _ => {}
@@ -29,20 +42,21 @@ pub fn image(all_path: Vec<String>,mut image_n:Frame,mut image_p:SharedImage,max
                 image_p.scale(size, size, true, true);
                 image_n.set_image(Some(image_p.clone()));
             }
-            if g.flag!=0{
-                x=0;
-                y=0;
-                size=900;
+            if g.flag != 0 {
+                x = 0;
+                y = 0;
                 image_n.set_pos(x, y);
                 now_image += g.flag as i32;
-                if now_image == max_image{
+                if now_image == max_image {
                     now_image = 0;
                 }
-                if now_image == -1{
-                    now_image = max_image-1;
+                if now_image == -1 {
+                    now_image = max_image - 1;
                 }
                 image_p = SharedImage::load(&all_path[now_image as usize]).unwrap();
+                size = min(wind.pixel_h(), wind.pixel_w());
                 image_p.scale(size, size, true, true);
+
                 image_n.set_image(Some(image_p.clone()));
             }
             app::awake();

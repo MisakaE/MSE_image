@@ -1,7 +1,10 @@
-use std::{thread, sync::mpsc::Sender};
-use fltk::app::{self,event_key_down};
-use crate::{key_map, struct_command::{self, Command}};
-pub fn key_listener_keep(control:Sender<Command>){
+use crate::{
+    key_map,
+    struct_command::{self, Command},
+};
+use fltk::app::{self, event_key_down};
+use std::{sync::mpsc::Sender, thread};
+pub fn key_listener_keep(control: Sender<Command>) {
     thread::spawn(move || loop {
         let mut comd = struct_command::Command {
             x: 0,
@@ -37,25 +40,39 @@ pub fn key_listener_keep(control:Sender<Command>){
         if flag {
             control.send(comd).expect("field to send");
             app::sleep(0.01);
+        } else {
+            app::sleep(0.05);
         }
-        else {app::sleep(0.05);}
-        
     });
 }
-pub fn key_listener_once(control:Sender<Command>){
-    thread::spawn(move||loop{
-        if event_key_down(key_map::Z){
-            control.send(struct_command::Command{ x: 0, y: 0, size: 0, flag: -1 }).expect("field to send");
+pub fn key_listener_once(control: Sender<Command>) {
+    thread::spawn(move || loop {
+        if event_key_down(key_map::Z) {
+            control
+                .send(struct_command::Command {
+                    x: 0,
+                    y: 0,
+                    size: 0,
+                    flag: -1,
+                })
+                .expect("field to send");
             loop {
-                if !event_key_down(key_map::Z){
+                if !event_key_down(key_map::Z) {
                     break;
                 }
             }
         }
-        if event_key_down(key_map::C){
-            control.send(struct_command::Command{ x: 0, y: 0, size: 0, flag: 1 }).expect("field to send");
+        if event_key_down(key_map::C) {
+            control
+                .send(struct_command::Command {
+                    x: 0,
+                    y: 0,
+                    size: 0,
+                    flag: 1,
+                })
+                .expect("field to send");
             loop {
-                if !event_key_down(key_map::C){
+                if !event_key_down(key_map::C) {
                     break;
                 }
             }

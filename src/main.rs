@@ -1,12 +1,14 @@
-use std::{sync::mpsc,env};
-use fltk::{enums::Color,prelude::WidgetExt,app, frame::Frame, image::SharedImage, prelude::*, window::Window};
+use fltk::{
+    app, enums::Color, frame::Frame, image::SharedImage, prelude::WidgetExt, prelude::*,
+    window::Window,
+};
 use glob::*;
+use std::{env, sync::mpsc};
+mod control;
 mod key_map;
 mod key_mgr;
 mod struct_command;
-mod control;
 fn main() {
-    
     let args: Vec<String> = env::args().collect();
     let mut all_path: Vec<String> = Vec::new();
     if args.len() <= 1 {
@@ -17,8 +19,7 @@ fn main() {
             return;
         }
         all_path = get_all_path(&args[2]);
-    }
-    else{
+    } else {
         all_path.push(args[1].clone());
     }
     let app = app::App::default();
@@ -26,15 +27,25 @@ fn main() {
     wind.set_color(Color::Black);
     let mut image_n = Frame::new(25, 0, 800, 800, "");
     let mut image_p = SharedImage::load(&all_path[0]).unwrap();
-    image_p.scale(900, 900, true, true);
+    image_p.scale(wind.pixel_w(), wind.pixel_h(), true, true);
     image_n.set_image(Some(image_p.clone()));
     wind.end();
     wind.make_resizable(true);
     wind.show();
+
     let (tx, rx) = mpsc::channel::<struct_command::Command>();
     let tx1 = tx.clone();
+    //let (windatain, windataout) = mpsc::channel::<struct_command::WindowHW>();
+    //let (windata_requirein,windata_requireout) = mpsc::channel::<bool>();
     let max_image = all_path.len();
-    control::image(all_path, image_n, image_p, max_image as i32, rx);
+    control::image(
+        all_path,
+        image_n,
+        image_p,
+        max_image as i32,
+        rx,
+        wind.clone(),
+    );
     key_mgr::key_listener_keep(tx);
     key_mgr::key_listener_once(tx1);
     app.run().unwrap();
