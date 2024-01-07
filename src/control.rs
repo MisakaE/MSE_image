@@ -4,23 +4,26 @@ use fltk::{
     frame::Frame,
     image::SharedImage,
     prelude::{ImageExt, WidgetExt},
-    window::DoubleWindow,
+    window::Window, enums::Color,
 };
-use std::{cmp::min, sync::mpsc::Receiver, thread};
-
+use std::{cmp::min, sync::{mpsc::Receiver, Arc, Mutex}, thread};
 pub fn image(
     all_path: Vec<String>,
+    max_image: i32,
     mut image_n: Frame,
     mut image_p: SharedImage,
-    max_image: i32,
     control: Receiver<struct_command::Command>,
-    wind: DoubleWindow,
+    wind: Arc<Mutex<Window>>,
 ) {
+    let wind = wind.clone();
     thread::spawn(move || {
         let mut x = 0;
         let mut y = 0;
         let mut size = 900;
         let mut now_image = 0;
+        let mut wind = wind.lock().unwrap();
+        //wind.set_label("SSSS");
+        wind.set_color(Color::from_rgb(33, 22, 33));
         for g in control {
             x += g.x;
             y += g.y;
@@ -55,6 +58,7 @@ pub fn image(
                 }
                 image_p = SharedImage::load(&all_path[now_image as usize]).unwrap();
                 size = min(wind.pixel_h(), wind.pixel_w());
+
                 image_p.scale(size, size, true, true);
 
                 image_n.set_image(Some(image_p.clone()));

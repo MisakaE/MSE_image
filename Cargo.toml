@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 fltk = "^1.4"
 glob = "*"
+regex = "*"
