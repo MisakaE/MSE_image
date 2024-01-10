@@ -1,12 +1,13 @@
 use fltk::{
-    app, enums::Color, frame::Frame, image::SharedImage, prelude::WidgetExt, prelude::*,
-    window::Window,
+    app, enums::Color, frame::Frame, image::SharedImage, prelude::WidgetExt,
+    prelude::*, window::Window,
 };
 use glob::*;
 use std::{
     env,
     sync::{mpsc, Arc},
 };
+use struct_command::{ListMsg, PosMsg, SizeMsg};
 mod control;
 mod key_map;
 mod key_mgr;
@@ -30,28 +31,60 @@ fn main() {
     /*
     let mut wind = Window::default().with_size(850, 850);
     */
+
     let wind = Arc::new(Mutex::new(Window::default().with_size(850, 850)));
     let wind_main = wind.clone();
     let mut locked_wind_main = wind_main.lock().unwrap();
     locked_wind_main.set_color(Color::Black);
-    let mut image_n = Frame::new(25, 0, 800, 800, "");
-    let mut image_p = SharedImage::load(&all_path[0]).unwrap();
-    image_p.scale(locked_wind_main.pixel_w(), locked_wind_main.pixel_h(), true, true);
-    image_n.set_image(Some(image_p.clone()));
+
+    let image_n = Arc::new(Mutex::new(Frame::new(25, 0, 800, 800, "")));
+
+    let image_p = Arc::new(Mutex::new(SharedImage::load(&all_path[0]).unwrap()));
+
+    let image_ps = image_p.clone();
+    let image_ns = image_n.clone();
+    let mut locked_image_p = image_ps.lock().unwrap();
+
+    let mut locked_image_n = image_ns.lock().unwrap();
+
+    locked_image_p.scale(
+        locked_wind_main.pixel_w(),
+        locked_wind_main.pixel_h(),
+        true,
+        true,
+    );
+    locked_image_n.set_image(Some(locked_image_p.clone()));
+
     locked_wind_main.end();
     locked_wind_main.make_resizable(true);
     locked_wind_main.show();
     drop(locked_wind_main);
+    drop(locked_image_n);
+    drop(locked_image_p);
     //wind.clone().set_label("sss");
-
-    let (tx, rx) = mpsc::channel::<struct_command::Command>();
-    let tx1 = tx.clone();
-    //let (windatain, windataout) = mpsc::channel::<struct_command::WindowHW>();
-    //let (windata_requirein,windata_requireout) = mpsc::channel::<bool>();
+    
+    let (pos_msg_sen, pos_msg_rec) = mpsc::channel::<PosMsg>();
+    let (size_msg_sen, size_msg_rec) = mpsc::channel::<SizeMsg>();
+    let (list_msg_sen, list_msg_rec) = mpsc::channel::<ListMsg>();
     let max_image = all_path.len();
-    control::image(all_path, max_image as i32, image_n, image_p, rx, wind.clone());
-    key_mgr::key_listener_keep(tx);
-    key_mgr::key_listener_once(tx1);
+    control::image_control(
+        pos_msg_rec, 
+        list_msg_rec, 
+        size_msg_rec, 
+        pos_msg_sen.clone(), 
+        size_msg_sen.clone(), 
+        all_path, 
+        max_image as i32, 
+        image_n.clone(), 
+        image_p.clone(), 
+        wind.clone(),
+    );
+    
+    //control::image(all_path, max_image as i32, image_n, image_p, rx, wind.clone());
+
+    key_mgr::key_listener_keep(pos_msg_sen, size_msg_sen);
+    key_mgr::key_listener_once(list_msg_sen);
+    
     app.run().unwrap();
 }
 
