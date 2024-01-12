@@ -1,18 +1,17 @@
-use crate::struct_command::{self, ListMsg, PosMsg, SizeMsg};
+use crate::struct_command::{ListMsg, PosMsg, SizeMsg, MenuMsg};
 use fltk::{
-    enums::Color,
     frame::Frame,
     image::SharedImage,
-    macros::image,
     prelude::{ImageExt, WidgetExt},
     window::Window,
-    app::{self, lock},
+    app::{self},
 };
 use std::{
     cmp::min,
-    sync::{mpsc::{Receiver,Sender}, Arc, Mutex, MutexGuard},
-    thread, fmt::Debug, ops::{Deref, DerefMut},
+    sync::{mpsc::{Receiver,Sender}, Arc, Mutex},
+    thread, fs,
 };
+
 pub fn image_control(
     pos_msg_rec: Receiver<PosMsg>,
     list_msg_rec: Receiver<ListMsg>,
@@ -20,6 +19,7 @@ pub fn image_control(
 
     pos_msg_sen: Sender<PosMsg>,
     size_msg_sen: Sender<SizeMsg>,
+    menu_msg_sen:Sender<MenuMsg>,
 
     all_path: Vec<String>,
     max_image: i32,
@@ -35,6 +35,7 @@ pub fn image_control(
         list_msg_rec,
         pos_msg_sen,
         size_msg_sen,
+        menu_msg_sen,
         image_p.clone(),
         wind.clone(),
         max_image,
@@ -96,10 +97,13 @@ fn image_size(
         }
     });
 }
+
+
 fn image_list(
     list_msg_rec: Receiver<ListMsg>,
     pos_msg_sen: Sender<PosMsg>,
     size_msg_sen: Sender<SizeMsg>,
+    menu_msg_sen:Sender<MenuMsg>,
     image_p: Arc<Mutex<SharedImage>>,
     wind: Arc<Mutex<Window>>,
     max_image: i32,
@@ -113,11 +117,6 @@ fn image_list(
     for msg in list_msg_rec {
         let locked_wind = wind_s.lock().unwrap();
         let mut locked_image_p = image_ps.lock().unwrap();
-        /*
-        x = 0;
-        y = 0;
-        image_n.set_pos(x, y);
-        */
         now_image += msg.flag as i32;
         if now_image == max_image {
             now_image = 0;
@@ -127,6 +126,7 @@ fn image_list(
         }
         locked_image_p.clone_from(&SharedImage::load(&all_path[now_image as usize]).unwrap());
         let size = min(locked_wind.pixel_h(), locked_wind.pixel_w());
+        menu_msg_sen.send(MenuMsg { name:all_path[now_image as usize].clone(),size:fs::metadata(&all_path[now_image as usize]).unwrap().len()}).unwrap();
         pos_msg_sen.send(PosMsg {
             x: 0,
             y: 0,
@@ -142,66 +142,3 @@ fn image_list(
     }
     });
 }
-/*
-pub fn image(
-    all_path: Vec<String>,
-    max_image: i32,
-    mut image_n: Frame,
-    mut image_p: SharedImage,
-    control: Receiver<struct_command::>,
-    wind: Arc<Mutex<Window>>,
-) {
-    let wind = wind.clone();
-    thread::spawn(move || {
-        let mut x = 0;
-        let mut y = 0;
-        let mut size = 900;
-        let mut now_image = 0;
-        let mut wind = wind.lock().unwrap();
-        //wind.set_label("SSSS");
-        wind.set_color(Color::from_rgb(33, 22, 33));
-        for g in control {
-            x += g.x;
-            y += g.y;
-            image_n.set_pos(x, y);
-            if g.size != 0 {
-                match g.size {
-                    1 => {
-                        if size <= 2000 {
-                            size = (size as f32 * 1.1) as i32;
-                        }
-                    }
-                    -1 => {
-                        if size >= 30 {
-                            size = (size as f32 * 0.92) as i32;
-                        }
-                    }
-                    _ => {}
-                }
-                image_p.scale(size, size, true, true);
-                image_n.set_image(Some(image_p.clone()));
-            }
-            if g.flag != 0 {
-                x = 0;
-                y = 0;
-                image_n.set_pos(x, y);
-                now_image += g.flag as i32;
-                if now_image == max_image {
-                    now_image = 0;
-                }
-                if now_image == -1 {
-                    now_image = max_image - 1;
-                }
-                image_p = SharedImage::load(&all_path[now_image as usize]).unwrap();
-                size = min(wind.pixel_h(), wind.pixel_w());
-
-                image_p.scale(size, size, true, true);
-
-                image_n.set_image(Some(image_p.clone()));
-            }
-            app::awake();
-            image_n.parent().unwrap().redraw();
-        }
-    });
-}
-*/

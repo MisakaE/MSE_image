@@ -10,9 +10,10 @@ pub struct SizeMsg{
 pub struct ListMsg{
     pub flag:i32,
 }
-/*
-pub struct MenuMsg{
 
+pub struct MenuMsg{
+    pub name:String,
+    pub size:u64,
 }
-*/
+
 
