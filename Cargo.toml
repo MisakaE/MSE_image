@@ -7,7 +7,5 @@ edition = "2021"
 
 [dependencies]
 fltk = "*"
-glob = "*"
 regex = "*"
 image = "*"
-webp = "*"

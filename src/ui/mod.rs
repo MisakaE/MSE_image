@@ -1,2 +1,2 @@
-pub mod mainpage;
-mod menu;
+pub mod main_page;
+pub mod picture;
