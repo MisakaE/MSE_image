@@ -1,6 +1,6 @@
 use std::{sync::mpsc::Sender, thread};
 
-use fltk::{app::{event_key_down, sleep}, enums::Key};
+use fltk::{app::{event_key_down, sleep}, enums::{Event, Key}, prelude::WidgetBase, window::DoubleWindow};
 
 use crate::{Msg,MsgType};
 
@@ -27,7 +27,24 @@ pub fn listen(sen:Sender<Msg>){
                 sen.send(Msg { msg: MsgType::Resize(true) }).unwrap();
                 sleep(0.07)
             }
+            
             sleep(0.02);
         }
+    });
+}
+pub fn listen_once(sen:Sender<Msg>,frame:&mut DoubleWindow){
+    frame.handle(move|_,event|{
+        match event{
+            Event::KeyDown =>{
+                if event_key_down(Key::from_char('z')){
+                    sen.send(Msg { msg: MsgType::Change(false) }).unwrap();
+                }
+                if event_key_down(Key::from_char('c')){
+                    sen.send(Msg { msg: MsgType::Change(true) }).unwrap();
+                }
+            }
+            _=>()
+        }
+        true
     });
 }

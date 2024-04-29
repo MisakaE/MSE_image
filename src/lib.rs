@@ -1,3 +1,5 @@
+use app::dir_open::parse;
+
 pub mod app;
 pub mod ui;
 pub mod control;
@@ -10,4 +12,10 @@ enum MsgType {
 
 pub struct Msg{
     msg:MsgType
+}
+pub fn run(){
+    let path = parse().unwrap();
+    let list = app::dir_open::read_list(path).unwrap();
+    ui::main_page::run(list);
+    
 }
